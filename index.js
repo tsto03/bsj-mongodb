@@ -46,6 +46,56 @@ app.get('/', (req, res) => {
     res.render("index");
 });
 
+app.get('/view/:company_id', (req, res) => {
+    const parameters = req.params;
+    const c_name = parameters['company_id'];
+    // A better way to do the following is using findOne method. 
+    // You can find information here https://www.w3schools.com/nodejs/nodejs_mongodb_find.asp
+    db_handler.collection(COLLECTION_NAME).find({ name: c_name }).toArray((err, result) => {
+        if (err) {
+            res.send("Company not found");
+            console.log(err);
+        }
+        else {
+            res.render('company', {
+                'single_company': result[0]
+            });
+        }
+    });
+});
+
+app.get('/updateCompany/:company_id', (req, res) => {
+    const parameters = req.params;
+    const c_name = parameters['company_id'];
+
+    const new_values = { $set: { hiring: 'Yes' } };
+    db_handler.collection(COLLECTION_NAME).updateOne({ name: c_name }, new_values, (err, result) => {
+        if (err) {
+            res.send("Could not fetch hiring info on company");
+            console.log(err);
+        }
+        else {
+            res.redirect('/view/company_id');
+            console.log(`${c_name} is hiring!`); 
+        }
+    });
+});
+
+app.get('/delete/:company_id', (req, res) => {
+    const parameters = req.params;
+    const c_name = parameters['company_id'];
+    db_handler.collection(COLLECTION_NAME).deleteOne({ name: c_name }, (err, result) => {
+        if (err) {
+            res.send("Could not delete the company");
+            console.log(err);
+        }
+        else {
+            res.redirect('/jobs');
+        }
+
+    });
+});
+
 
 app.get('/jobs', (req, res) => {
     // In Step 7, we will fetch data from Database here and send to jobs.ejs page using an array called all_companies
